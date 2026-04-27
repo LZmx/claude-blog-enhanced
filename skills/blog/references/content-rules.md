@@ -253,6 +253,14 @@ Always attribute statistics: `[Number]% [claim] ([Source](url), [Year])`.
 Unattributed statistics damage E-E-A-T trust signals and are flagged as
 fabrication risks in quality scoring.
 
+**FLOW evidence triple format (drafting requirement):**
+
+- Year anchor in prose: "In 2026, [Source] found..." (NOT: "...found ... (Source, 2026).")
+- Inline citation: publisher AND title, e.g. "Ahrefs, AI Overviews CTR update".
+- Source block: full URL plus `retrieved YYYY-MM-DD` for every cited source.
+
+Drop unverifiable stats. Replace contradicted stats with verified alternatives. See `flow-alignment.md`.
+
 ## Information Gain -- The Key Differentiator
 
 Google's Information Gain patent (US11354342B2, 2022) rewards content with

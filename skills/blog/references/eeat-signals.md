@@ -224,6 +224,8 @@ Trust encompasses and validates all other signals.
 | Expert review | "Reviewed by [Expert Name], [credentials]" |
 | Date transparency | Publish date AND last updated date visible |
 
+**Trustworthiness requires the FLOW evidence triple.** Experience and authority signals only land when the underlying claims are verifiable: year anchor in prose, inline citation with publisher and title, URL with retrieval date in the source block. See `flow-alignment.md`.
+
 ---
 
 ## September 2025 QRG Key Principle

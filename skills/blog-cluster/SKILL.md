@@ -231,6 +231,10 @@ Read `cluster-plan.json` from the user-specified path or the most recent `cluste
 
 Construct the cluster context block (full schema in `references/execution-workflow.md`) and prepend it to the topic prompt passed to the Task tool invoking `blog-write`. The context tells `blog-write` the cluster name, the post's role (pillar or spoke), the primary and secondary keywords, the chosen template, the word count target, the list of already-written posts (link to these), the list of upcoming posts (use `[INTERNAL-LINK]` placeholders), and the linking requirements for this post.
 
+**FLOW evidence triple propagation (required).** The cluster context must include this directive for every spoke and the pillar: "Apply the FLOW evidence triple to every public statistic. Year anchor in prose ('In 2026,'), inline citation with publisher and title, URL with retrieval date in the source block. Drop unverifiable stats. Replace contradicted ones."
+
+This cascade is required because cluster execution is a high-leverage operation (5 to 15 posts at once). Without explicit propagation, individual spokes could silently skip evidence discipline. See `skills/blog/references/flow-alignment.md`.
+
 The context also instructs `blog-write` to run autonomously: skip topic clarification, skip outline approval, do not auto-detect template, do not pause.
 
 Output format: standard markdown (`.md`) by default, matching `blog-write`'s default. If the user explicitly requests HTML, set the platform target accordingly. Do not impose any brand-specific CSS or wordmark; that is the user's responsibility downstream.
