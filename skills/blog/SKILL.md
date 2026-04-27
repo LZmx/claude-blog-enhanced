@@ -1,26 +1,28 @@
 ---
 name: blog
 description: >
-  Full-lifecycle blog engine with 21 commands, 12 content templates, 5-category
-  100-point scoring, and 4 specialized agents. Optimized for Google rankings
+  Full-lifecycle blog engine with 27 commands, 12 content templates, 5-category
+  100-point scoring, and 5 specialized agents. Optimized for Google rankings
   (December 2025 Core Update, E-E-A-T) and AI citations (GEO/AEO). Writes,
   rewrites, analyzes, outlines, audits, and repurposes blog content with
   answer-first formatting, sourced statistics, Pixabay/Unsplash/Pexels images,
   AI image generation via Gemini, built-in SVG chart generation, JSON-LD schema
-  generation, and freshness signals.
+  generation, and freshness signals. Includes FLOW framework prompts, semantic
+  topic-cluster planning + execution, and multilingual publishing.
   Supports any platform (WordPress, Next.js MDX, Hugo, Ghost, Astro, Jekyll,
   11ty, Gatsby, HTML). Use when user says "blog", "write blog", "blog post",
   "blog strategy", "content brief", "editorial calendar", "analyze blog",
   "rewrite blog", "update blog", "blog SEO", "blog optimization", "content plan",
   "blog outline", "seo check", "schema markup", "repurpose", "geo audit",
-  "blog audit", "citation readiness".
+  "blog audit", "citation readiness", "topic cluster", "multilingual blog",
+  "translate blog", "blog flow", "FLOW framework".
 license: MIT
 compatibility: Requires Claude Code and Python 3.11+ for quality scoring
 metadata:
   author: AgriciDaniel
-  version: "1.6.9"
+  version: "1.7.0"
 user-invokable: true
-argument-hint: "[write|rewrite|analyze|brief|calendar|cannibalization|strategy|outline|seo-check|schema|repurpose|geo|image|audit|factcheck|persona|taxonomy|notebooklm|audio|google|update] [topic-or-file]"
+argument-hint: "[write|rewrite|analyze|brief|calendar|cannibalization|strategy|outline|seo-check|schema|repurpose|geo|image|audit|factcheck|persona|taxonomy|notebooklm|audio|google|update|cluster|multilingual|translate|localize|locale-audit|flow] [topic-or-file]"
 ---
 
 # Blog -- Content Engine for Rankings & AI Citations
@@ -55,6 +57,12 @@ Perplexity, Google AI Overviews, Gemini).
 | `/blog audio [generate\|voices\|setup]` | Generate audio narration of blog posts |
 | `/blog google [command] [args]` | Google API data: PSI, CrUX, GSC, GA4, NLP, YouTube, Keywords |
 | `/blog update <file>` | Update existing post with fresh stats (routes to rewrite) |
+| `/blog cluster [plan\|execute] <seed-or-plan>` | Semantic topic-cluster planning + execution (hub and spoke) |
+| `/blog multilingual <topic> --languages <codes>` | Write + translate + localize + emit hreflang in one command |
+| `/blog translate <file> --to <codes>` | SEO-optimized translation with format preservation |
+| `/blog localize <file> --locale <code>` | Cultural deep-adaptation (DACH, FR, ES, JA, custom) |
+| `/blog locale-audit <directory>` | Multilingual content QA (completeness, hreflang, parity, freshness) |
+| `/blog flow [find\|optimize\|win\|prompts\|sync]` | FLOW framework prompts (evidence-led, 30 blog-applicable) |
 
 ## Orchestration Logic
 
@@ -84,6 +92,12 @@ Perplexity, Google AI Overviews, Gemini).
    - `audio` / `narrate` / `tts` → `blog-audio` (audio narration generation)
    - `google` / `gsc` / `psi` / `pagespeed` / `crux` / `cwv` → `blog-google` (Google API data and reports)
    - `update` → `blog-rewrite` (with freshness-update mode)
+   - `cluster` / `topic-cluster` / `pillar` / `hub-and-spoke` → `blog-cluster` (semantic clustering + execution)
+   - `multilingual` / `international` → `blog-multilingual` (write + translate + localize + hreflang)
+   - `translate` → `blog-translate` (SEO-optimized translation)
+   - `localize` / `cultural-adaptation` → `blog-localize` (cultural deep-adaptation)
+   - `locale-audit` / `translation-audit` → `blog-locale-audit` (multilingual QA)
+   - `flow` / `find-leverage-optimize-win` → `blog-flow` (FLOW framework prompts)
 
 ### Platform Detection
 

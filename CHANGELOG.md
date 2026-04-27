@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-04-27
+
+### Pro Hub Challenge community release + FLOW framework integration
+
+#### Added
+- **`blog-cluster`** sub-skill (winner of the AI Marketing Hub Pro Hub Challenge, March 2026, by Lutfiya Miller). Semantic topic-cluster planning + execution engine. SERP-based keyword grouping, hub-and-spoke architecture, sequential `blog-write` orchestration with shared cluster context and automatic internal-link injection. XSS-hardened cluster-map.html (no inline JavaScript). Adapted from [semantic-cluster-engine](https://github.com/Drfiya/semantic-cluster-engine).
+- **`blog-multilingual`** sub-skill (by Chris Mueller, AI Marketing Hub Pro). One-command international publishing. Orchestrates `blog-write`, `blog-translate`, `blog-localize`, plus optional `seo-hreflang` integration. Adapted from [claude-blog-multilingual](https://github.com/Chriss54/multilingual-int).
+- **`blog-translate`** sub-skill (by Chris Mueller). SEO-optimized translation with format preservation, machine-translation artifact detection, and locale-correct number/date/currency formatting.
+- **`blog-localize`** sub-skill (by Chris Mueller). Cultural deep-adaptation with built-in profiles for DACH, Francophone, Hispanic, and Japanese markets, plus a custom-locale template.
+- **`blog-locale-audit`** sub-skill (by Chris Mueller). Multilingual quality control: completeness matrix, hreflang correctness, meta-tag parity, freshness checks.
+- **`blog-translator`** specialized agent (no `Bash` tool, per the v1.9.6 lesson from claude-seo).
+- **`blog-flow`** sub-skill. FLOW framework integration ([github.com/AgriciDaniel/flow](https://github.com/AgriciDaniel/flow), CC BY 4.0 prompt content + MIT code). Commands: `/blog flow [find|optimize|win|prompts|sync]`. Surfaces 30 blog-applicable evidence-led prompts; the local-SEO stage is intentionally excluded (use claude-seo for those).
+- **`scripts/sync_flow.py`**. Pulls FLOW references from GitHub. Stdlib only. HTTPS-only host allowlist (`api.github.com`). 5 MB cap. Atomic writes. Path-traversal guard. Anonymous-first GitHub API. Supports `--dry-run` and `--ref <sha>` pinning. SHA-256 lockfile drift detection. Injects CC BY 4.0 license header on every synced markdown file plus the auto-generated index README.
+- **`tests/test_security_guardrails.py`**. Four mechanical pytest gates that fail CI if (1) any agent grants `Bash`, (2) any SKILL.md uses the invalid `allowed-tools` field, (3) skill names collide, or (4) the FLOW sync script loses a security invariant.
+- **`CONTRIBUTORS.md`** crediting Pro Hub Challenge contributors and recording the integration decisions.
+
+#### Changed
+- Plugin description bumped to mention 27 commands, 5 agents, FLOW + cluster + multilingual capabilities.
+- Marketplace description updated to "28 skills, 5 agents, FLOW framework integration, semantic topic-cluster execution, multilingual publishing".
+- `skills/blog/SKILL.md` orchestrator: routing entries added for `cluster`, `multilingual`, `translate`, `localize`, `locale-audit`, and `flow`. Quick Reference table updated. Version bumped to 1.7.0.
+- `CLAUDE.md` file counts updated (28 sub-skills, 5 agents).
+- Plugin keywords expanded to include `flow-framework`, `topic-clusters`, `hub-and-spoke`, `multilingual`, `translation`, `localization`, `hreflang`, `i18n`.
+
+#### Fixed
+- **Pre-existing security debt**: removed `Bash` from `agents/blog-reviewer.md` tools list. The agent scores text and only needs `Read`, `Grep`, `Glob`. Aligns with the v1.9.6 lesson from claude-seo (prompt-injection blast radius on agents with shell access). Now enforced mechanically by `test_no_bash_tool_in_any_agent_frontmatter`.
+
 ## [1.6.8] - 2026-04-08
 
 ### Fixed
