@@ -30,6 +30,12 @@ yarn-error.log*
 *.pem
 credentials.json
 
+# MCP server configs (may carry inline credentials)
+# A tracked .mcp.example.json template lives alongside, with env-expansion only.
+.mcp.json
+.mcp.local.json
+**/.mcp.json
+
 # IDE
 .vscode/
 .idea/
