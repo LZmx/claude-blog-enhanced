@@ -1,7 +1,8 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="Claude Blog: AI Blog Writing and SEO Optimization Skill for Claude Code. Animated terminal-style banner with pixel-art CLAUDE BLOG wordmark, breathing orange gradient, scanning command palette, and pulsing status indicators" width="100%">
+</p>
+
 # AI Blog Writing & SEO Optimization Skill for Claude Code (`claude-blog`)
-
-<img src="assets/banner.svg" alt="Claude Blog: The Content Operating System" width="100%">
-
 
 <p align="center">
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/Agent%20Skills-Compatible-blue" alt="Agent Skill"></a>
@@ -144,6 +145,17 @@ irm https://raw.githubusercontent.com/AI-Marketing-Hub/claude-blog/main/install.
 
 > Piping `curl` or `irm` to a shell gives the script execution authority on your machine. The clone-then-checkout-tag flow is safer because you can inspect what runs. Both flows authenticate against the private repo using your existing `gh auth` / GitHub credentials.
 
+**Verify installer integrity (recommended, VULN-IAC-001 hardening):**
+
+```bash
+# Download, verify SHA-256, then run if the hash matches.
+curl -fsSL -o install.sh https://raw.githubusercontent.com/AI-Marketing-Hub/claude-blog/main/install.sh
+echo "029388e448dd29bed259b130c2be42e2f6a16d4d5b6801a61bfb4f49b621fc04  install.sh" | sha256sum -c
+bash install.sh
+```
+
+The SHA-256 above is for the current `install.sh` at HEAD on `main`. Verify against [the canonical file](https://github.com/AI-Marketing-Hub/claude-blog/blob/main/install.sh) before running. The `install.ps1` companion hash is `6d03f353e5d844c4fe5c7c0b2500bd1e2aad02468cd544013bab876735cebf98`. Hashes are updated in this README on every installer change.
+
 Restart Claude Code after installation to activate.
 
 ## Commands
@@ -154,7 +166,9 @@ Restart Claude Code after installation to activate.
   <img src="assets/blog-write-demo.gif" alt="claude-blog /blog write demo: end-to-end article generation with the 5-gate Delivery Contract" width="100%">
 </p>
 
-<img src="assets/diagrams/03-sub-skill-map-B.svg" alt="claude-blog sub-skill ecosystem: orchestrator hub with 30 sub-skills grouped into 8 clusters (writing, strategy, quality, AI and search, multilingual, research, media, distribution)" width="100%">
+<p align="center">
+  <img src="assets/diagrams/03-sub-skill-map-B.svg" alt="claude-blog sub-skill ecosystem: orchestrator hub at the center with 30 sub-skills organized into 8 thematic clusters (writing, strategy, quality, AI and search, multilingual, research, media, distribution); panel sizes auto-scale to skill counts" width="100%">
+</p>
 
 | Command | Description |
 |---------|-------------|
@@ -284,11 +298,15 @@ Adapted from `pbakaus/impeccable` (Apache 2.0) and `mvanhorn/last30days-skill` (
 
 The FLOW framework (Find, Leverage, Optimize, Win) is the evidence-led workflow shared with [`AgriciDaniel/flow`](https://github.com/AgriciDaniel/flow) (CC BY 4.0). Each phase contributes prompts to the orchestrator pipeline; `/blog flow` exposes 30 ready-to-run prompts indexed by phase.
 
-<img src="assets/diagrams/04-framework-B.svg" alt="FLOW framework radial wheel: Find (discover topics), Leverage (amplify assets), Optimize (improve content), Win (convert readers) with 30 representative prompts" width="100%">
+<p align="center">
+  <img src="assets/diagrams/04-framework-B.svg" alt="FLOW framework radial wheel: four phases (Find for topic discovery, Leverage for asset amplification, Optimize for content improvement, Win for reader conversion) arranged around a central hub, with 10 representative prompts on the outer ring" width="100%">
+</p>
 
 ## Delivery contract (v1.9.0)
 
-<img src="assets/diagrams/02-pipeline-A.svg" alt="5-gate Blog Delivery Contract: Capability Discovery, Format Completeness, Visual Verification, Content Review (BLOCKING), Asset and Link Integrity" width="100%">
+<p align="center">
+  <img src="assets/diagrams/02-pipeline-A.svg" alt="5-gate Blog Delivery Contract pipeline: Capability Discovery, Format Completeness, Visual Verification, Content Review (BLOCKING gate, score must be 90 or higher with zero P0 issues), and Asset and Link Integrity. Iterates up to 3 times on failure before escalating to the user" width="100%">
+</p>
 
 Every blog passes a 5-gate contract before being shown to the user. The user is never the first reviewer; the gates are.
 
@@ -304,7 +322,9 @@ Hero image ladder: Banana MCP, direct Gemini API, premium stock (Unsplash, Pexel
 
 ## Architecture
 
-<img src="assets/diagrams/01-architecture-B.svg" alt="claude-blog system architecture: orchestrator routes user commands to sub-skills, agents, and scripts; output flows through the 5-gate delivery contract before reaching the user" width="100%">
+<p align="center">
+  <img src="assets/diagrams/01-architecture-B.svg" alt="claude-blog system architecture: left-to-right pipeline from user command through orchestrator routing, sub-skill execution, and agent dispatch to the 5-gate delivery contract before reaching the user" width="100%">
+</p>
 
 claude-blog ships as one orchestrator plus 29 sub-skills, 5 agents, 21 references, 12 templates, and 9 root-level scripts. The orchestrator routes user commands to sub-skills, which spawn agents and call scripts via Bash.
 
@@ -373,7 +393,9 @@ The installer ships only Python scripts and markdown files, never executes remot
 
 ## Roadmap
 
-<img src="assets/diagrams/05-roadmap-A.svg" alt="claude-blog wave roadmap: v1.6.0 foundation, v1.7.0 FLOW framework, v1.8.0 impeccable methodology, v1.9.0 delivery contract (current), v2.0.0 multi-CMS publishing, v3.0.0 blog-as-code" width="100%">
+<p align="center">
+  <img src="assets/diagrams/05-roadmap-A.svg" alt="claude-blog wave roadmap on a horizontal timeline: v1.6.0 foundation (Mar 2026), v1.7.0 FLOW framework (Apr 2026), v1.8.0 impeccable methodology (May 2026), v1.9.0 delivery contract (current, May 2026), v2.0.0 multi-CMS publishing (Q3 2026), v3.0.0 blog-as-code (Q1 2027)" width="100%">
+</p>
 
 **v1.9.1 (next)**
 - Shared `_count_body_words(html)` function between `blog_render` and `blog_preflight` to close the v1.9.0 audit residual.
@@ -469,7 +491,20 @@ MIT License. See [`LICENSE`](LICENSE) for details.
 
 - **[Rankenstein](https://rankenstein.pro)**: GUI-based content publishing workflow; research to publish in one platform.
 - **[FLOW framework](https://github.com/AgriciDaniel/flow)**: Evidence-led Find, Optimize, Win prompts (CC BY 4.0). Integrated as a sub-skill via `/blog flow`.
+- **[Claude Ads](https://github.com/AgriciDaniel/claude-ads)** and **[Claude SEO](https://github.com/AgriciDaniel/claude-seo)**: sibling skills sharing the same brand kit (banner + diagrams generated with the brand-orange palette).
 - **[AI Marketing Hub](https://www.skool.com/ai-marketing-hub)**: Free community, 2,800+ members. Pro tier at [`ai-marketing-hub-pro`](https://www.skool.com/ai-marketing-hub-pro) hosts this skill's private mirror.
+
+## Star history
+
+<a href="https://star-history.com/#AgriciDaniel/claude-blog&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=AgriciDaniel/claude-blog&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=AgriciDaniel/claude-blog&type=Date" />
+    <img alt="Star history of AgriciDaniel/claude-blog on GitHub" src="https://api.star-history.com/svg?repos=AgriciDaniel/claude-blog&type=Date" />
+  </picture>
+</a>
+
+If claude-blog saves you time, a star on the [public repo](https://github.com/AgriciDaniel/claude-blog) is the easiest way to say thanks (and helps other content folks find it).
 
 ## Author
 
