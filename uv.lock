@@ -401,7 +401,7 @@ requires-dist = [
     { name = "google-auth", marker = "extra == 'google'", specifier = ">=2.20.0,<3.0.0" },
     { name = "google-auth-httplib2", marker = "extra == 'google'", specifier = ">=0.2.0,<1.0.0" },
     { name = "google-auth-oauthlib", marker = "extra == 'google'", specifier = ">=1.0.0,<2.0.0" },
-    { name = "google-genai", marker = "extra == 'presentation'", specifier = ">=0.5.0,<2.0.0" },
+    { name = "google-genai", marker = "extra == 'presentation'", specifier = ">=1.0.0,<2.0.0" },
     { name = "jsonschema", marker = "extra == 'advanced'", specifier = ">=4.20.0,<5.0.0" },
     { name = "language-tool-python", marker = "extra == 'advanced'", specifier = ">=2.7.1,<3.0.0" },
     { name = "lxml", marker = "extra == 'advanced'", specifier = ">=5.0.0,<7.0.0" },
@@ -411,11 +411,11 @@ requires-dist = [
     { name = "requests", marker = "extra == 'google'", specifier = ">=2.32.4,<3.0.0" },
     { name = "requests", marker = "extra == 'presentation'", specifier = ">=2.32.4,<3.0.0" },
     { name = "scikit-learn", marker = "extra == 'advanced'", specifier = ">=1.4.0,<2.0.0" },
-    { name = "sentence-transformers", marker = "extra == 'advanced'", specifier = ">=2.5.0,<5.0.0" },
+    { name = "sentence-transformers", marker = "extra == 'advanced'", specifier = ">=4.0.0,<5.0.0" },
     { name = "spacy", marker = "extra == 'advanced'", specifier = ">=3.7.0,<4.0.0" },
     { name = "textstat", marker = "extra == 'core'", specifier = ">=0.7.3,<1.0.0" },
     { name = "textstat", marker = "extra == 'dev'", specifier = ">=0.7.3,<1.0.0" },
-    { name = "weasyprint", marker = "extra == 'presentation'", specifier = ">=60,<70" },
+    { name = "weasyprint", marker = "extra == 'presentation'", specifier = ">=60.2,<65" },
 ]
 provides-extras = ["core", "advanced", "google", "ads", "presentation", "dev"]
 
@@ -3163,7 +3163,7 @@ wheels = [
 
 [[package]]
 name = "weasyprint"
-version = "68.1"
+version = "64.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cffi" },
@@ -3175,9 +3175,9 @@ dependencies = [
     { name = "tinycss2" },
     { name = "tinyhtml5" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/db/3e/65c0f176e6fb5c2b0a1ac13185b366f727d9723541babfa7fa4309998169/weasyprint-68.1.tar.gz", hash = "sha256:d3b752049b453a5c95edb27ce78d69e9319af5a34f257fa0f4c738c701b4184e", size = 1542379, upload-time = "2026-02-06T15:04:11.203Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6c/a0/f6b3ef688e747488b17b3b39d27fe7438d3ec88d1b79d5524485a5458020/weasyprint-64.1.tar.gz", hash = "sha256:28b02f2c6409bafce1b1220d9d76a7345875bd3bd08c4f6dfbf510bb92a94757", size = 498647, upload-time = "2025-02-20T10:03:06.206Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dd/dd/14eb73cea481ad8162d3b18a4850d4a84d6e804a22840cca207648532265/weasyprint-68.1-py3-none-any.whl", hash = "sha256:4dc3ba63c68bbbce3e9617cb2226251c372f5ee90a8a484503b1c099da9cf5be", size = 319789, upload-time = "2026-02-06T15:04:09.189Z" },
+    { url = "https://files.pythonhosted.org/packages/42/95/bf333fbbaf73c1c211b6b801b9ac2563db8e2225f69902d1ba8b25c70e9c/weasyprint-64.1-py3-none-any.whl", hash = "sha256:f7c88ea8ce0ce0c527cbb9c802689e035fae50016d7efc5dfdaba4b75abf68f4", size = 302025, upload-time = "2025-02-20T10:03:03.095Z" },
 ]
 
 [[package]]
