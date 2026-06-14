@@ -12,7 +12,7 @@ description: >
   HTML). Use when user says "rewrite blog", "optimize blog", "update blog",
   "improve blog", "fix blog", "refresh blog post", "blog optimization".
 user-invokable: true
-argument-hint: "<file-path>"
+argument-hint: "<file-path> [--format markdown|html|mdx|wordpress]"
 license: MIT
 ---
 

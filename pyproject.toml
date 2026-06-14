@@ -14,22 +14,23 @@ build-backend = "setuptools.build_meta"
 py-modules = []
 
 [project]
-name = "claude-blog"
-version = "1.9.1"
-description = "AI-powered blog creation and optimization skill for Claude Code"
+name = "claude-blog-enhanced"
+version = "2.0.0"
+description = "AI-powered blog creation and optimization skill for Claude Code (enhanced fork)"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 authors = [
     {name = "AgriciDaniel"},
+    {name = "LZmx"},
 ]
 
 [project.urls]
-homepage = "https://github.com/AgriciDaniel/claude-blog"
-repository = "https://github.com/AgriciDaniel/claude-blog"
-issues = "https://github.com/AgriciDaniel/claude-blog/issues"
-documentation = "https://github.com/AgriciDaniel/claude-blog/tree/main/docs"
-changelog = "https://github.com/AgriciDaniel/claude-blog/blob/main/CHANGELOG.md"
+homepage = "https://github.com/LZmx/claude-blog-enhanced"
+repository = "https://github.com/LZmx/claude-blog-enhanced"
+issues = "https://github.com/LZmx/claude-blog-enhanced/issues"
+documentation = "https://github.com/LZmx/claude-blog-enhanced/tree/main/docs"
+changelog = "https://github.com/LZmx/claude-blog-enhanced/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 core = [

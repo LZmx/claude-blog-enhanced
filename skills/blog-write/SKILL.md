@@ -10,7 +10,7 @@ description: >
   Use when user says "write blog", "new blog post", "create article",
   "write about", "draft blog", "generate blog post".
 user-invokable: true
-argument-hint: "<topic>"
+argument-hint: "<topic> [--format markdown|html|mdx|wordpress|wordpress-blocks|php]"
 license: MIT
 ---
 
@@ -18,6 +18,21 @@ license: MIT
 
 Writes complete blog articles from a topic, brief, or outline. Every article
 follows the 6 pillars of dual optimization (Google rankings + AI citations).
+
+**Format-selectable output**: Use `--format` to choose the output format.
+The system uses a shared canonical article model; the renderer decides final syntax.
+- `markdown` (default) — for Obsidian, GitHub, static sites, editorial review
+- `html` — for generic CMS and rich text publishing
+- `mdx` — for Next.js, Astro, Gatsby MDX pipelines
+- `wordpress` — WordPress Classic Editor (block-commented HTML)
+- `wordpress-blocks` — WordPress Block Editor (Gutenberg full block markup)
+- `php` — WordPress theme integration template
+
+Usage:
+  /blog write "topic" [--format markdown|html|wordpress]
+
+Every format always saves `post.json` (canonical model), `metadata.json`, and `schema.json`.
+Format selection is transparent to quality scoring, delivery contract, and CI checks.
 
 **Key references** (paths relative to repo root; references live in the
 main `blog` skill's references directory, not in `blog-write/`):

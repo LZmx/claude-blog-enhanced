@@ -117,6 +117,49 @@ Detect blog platform from file extension and project structure:
 
 Adapt output format to detected platform. Default to standard markdown if unknown.
 
+### Format Selection
+
+All `/blog write`, `/blog rewrite`, and `/blog translate` commands accept `--format`:
+
+| `--format` value | Alias | Renderer | Default for | Use case |
+|------------------|-------|----------|-------------|----------|
+| `markdown` | `md` | `renderers/markdown.py` | All unknown platforms | Obsidian, GitHub, static sites, editorial review |
+| `html` | `generic-html` | `renderers/generic_html.py` | — | Generic CMS, rich text fields, email, RSS |
+| `mdx` | — | `renderers/mdx.py` | Next.js/Astro/Gatsby | React-based SSG with MDX pipelines |
+| `wordpress` | `wp`, `wordpress-classic` | `renderers/wordpress_classic.py` | WordPress | WordPress Classic Editor, REST API publish |
+| `wordpress-blocks` | `wp-blocks` | `renderers/wordpress_blocks.py` | — | WordPress Block Editor (Gutenberg) |
+| `php` | `php-template` | `renderers/php_template.py` | — | WordPress theme integration, custom templates |
+
+Architecture: prompts generate structured content into a canonical JSON model (`post.json`).
+Renderers decide the final format syntax. No renderer-specific branching inside core prompts.
+The canonical model is always saved regardless of format.
+
+Usage:
+  /blog write "AI SEO trends" --format markdown
+  /blog write "How to optimize for AI" --format html
+  /blog write "WordPress SEO guide" --format wordpress
+  /blog write "Gutenberg blocks tutorial" --format wordpress-blocks
+  /blog write "PHP template integration" --format php
+
+User-configurable default: set `default_format` in project config to change the default
+from `markdown` to any supported format.
+
+### File Artifacts
+
+Every published article generates:
+
+| File | Always? | Content |
+|------|---------|---------|
+| `post.json` | Always | Canonical article model (source of truth) |
+| `metadata.json` | Always | Extract of key metadata fields |
+| `schema.json` | Always | JSON-LD schema.org markup |
+| `article.md` | On demand | Markdown output |
+| `article.mdx` | On demand | MDX output |
+| `article.html` | On demand | Generic HTML output |
+| `article.wp.html` | On demand | WordPress Classic output |
+| `article.blocks.html` | On demand | WordPress Blocks output |
+| `template.php` | On demand | PHP template output |
+
 ## Core Methodology: The 6 Pillars
 
 Every blog post targets these 6 optimization pillars:

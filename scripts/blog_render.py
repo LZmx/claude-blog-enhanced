@@ -1,19 +1,31 @@
 #!/usr/bin/env python3
-"""Render a blog post markdown to .html and .pdf deterministically.
+"""Render a blog post to .html and .pdf deterministically.
 
-Reads a single .md file plus its frontmatter, emits:
-  <out-dir>/<slug>.html: self-contained, dark-mode-aware, JSON-LD,
-    Open Graph + Twitter Card, references hero.<ext> from the same dir.
-  <out-dir>/<slug>.pdf: via patchright `page.pdf()` (preferred) or
-    weasyprint fallback (only if patchright is unavailable).
+Accepts either:
+  --md <path.md>               Legacy: reads a markdown file with frontmatter
+  --json <path.json>           Canonical: reads a post.json article model
+
+Emits:
+  <out-dir>/<slug>.<ext>:       Rendered output in requested format
+  <out-dir>/<slug>.pdf:         PDF via patchright or weasyprint
+
+Format selection (with --json):
+  --format markdown             Standard Markdown (default)
+  --format mdx                  MDX for Next.js/Astro/Gatsby
+  --format html                 Generic semantic HTML
+  --format wordpress            WordPress Classic Editor HTML
+  --format wordpress-blocks     WordPress Block Editor (Gutenberg) HTML
+  --format php                  PHP template
 
 This is the Gate 2 (Format Completeness) implementation of the v1.9.0
-Blog Delivery Contract. Same source produces both outputs so they cannot
-diverge.
+Blog Delivery Contract. One canonical source produces all outputs so they
+cannot diverge.
 
 Usage:
     python3 scripts/blog_render.py --md <path.md> --out-dir <dir> \\
         [--pdf-engine playwright|weasyprint|auto] [--json]
+    python3 scripts/blog_render.py --json <path.json> --out-dir <dir> \\
+        --format markdown [--pdf-engine none] [--json]
 
 Returns 0 on success, 1 on render error or missing required artifact.
 """
@@ -34,6 +46,15 @@ from typing import Optional
 
 MAX_MD_BYTES = 4 * 1024 * 1024  # 4MB cap on a single markdown source
 REQUIRED_FRONTMATTER_KEYS = ("title", "description", "date", "author")
+
+# Try to load canonical renderers (best-effort; optional dependency)
+try:
+    from canonical.schema import Article
+    from renderers.registry import render_article, list_renderers
+    from canonical.output import save_all_artifacts, save_canonical
+    HAS_RENDERERS = True
+except ImportError:
+    HAS_RENDERERS = False
 # Markdown syntax fingerprints handled by python-markdown but NOT by the
 # stdlib fallback in _stdlib_markdown. If the fallback path is taken AND
 # any of these patterns appear in the body, the fallback emits a loud
@@ -459,22 +480,78 @@ def _render_pdf(html_path: Path, out_pdf: Path, engine: str) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--md", required=True, help="Path to markdown source file")
-    parser.add_argument("--out-dir", required=True, help="Output directory for .html and .pdf")
+    parser.add_argument("--md", help="Path to markdown source file (legacy)")
+    parser.add_argument("--json", nargs="?", const=True, help="Path to post.json (canonical) or --json for JSON output")
+    parser.add_argument("--out-dir", required=True, help="Output directory for rendered files")
     parser.add_argument("--hero", default="hero.png", help="Hero image filename (relative to out-dir)")
     parser.add_argument("--pdf-engine", choices=["auto", "playwright", "weasyprint", "none"], default="auto")
-    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--format", default="markdown",
+                        help="Output format: markdown, mdx, html, wordpress, wordpress-blocks, php (default: markdown)")
+    parser.add_argument("--list-formats", action="store_true", help="List available formats and exit")
+    parser.add_argument("--artifacts", action="store_true", help="Also save post.json, metadata.json, schema.json")
     args = parser.parse_args()
 
-    # Do NOT call .resolve() here: that would silently follow symlinks before
-    # _read_md_safely (which uses O_NOFOLLOW) gets a chance to refuse them.
-    # Use .absolute() to get an unambiguous path that preserves symlink ID.
+    if args.list_formats:
+        if HAS_RENDERERS:
+            for r in list_renderers():
+                print(f"  {r['format']:20s} {r['extension']:12s} {r['description']}")
+        else:
+            print("  markdown             md           Standard Markdown")
+            print("  mdx                  mdx          MDX for Next.js/Astro/Gatsby")
+            print("  html                 html         Generic semantic HTML")
+            print("  wordpress            wp.html      WordPress Classic Editor HTML")
+            print("  wordpress-blocks     blocks.html  WordPress Block Editor (Gutenberg) HTML")
+            print("  php                  php          PHP template")
+        return 0
+
+    if not args.md and not args.json:
+        print("ERROR: specify --md <file.md> or --json <file.json>", file=sys.stderr)
+        return 1
+
+    out_dir = Path(args.out_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Canonical JSON path
+    if args.json:
+        if not HAS_RENDERERS:
+            print("ERROR: --json requires canonical/renderers modules. Use --md instead or install deps.", file=sys.stderr)
+            return 1
+        json_path = Path(args.json) if isinstance(args.json, str) else None
+        if json_path and not json_path.is_file():
+            print(f"ERROR: {json_path} not a file", file=sys.stderr)
+            return 1
+        if json_path:
+            article = Article.from_dict(json.loads(json_path.read_text(encoding="utf-8")))
+        else:
+            print("ERROR: --json requires a file path", file=sys.stderr)
+            return 1
+        result = render_article(article, args.format)
+        out_path = out_dir / result.default_filename(article.slug)
+        out_path.write_text(result.content, encoding="utf-8")
+        outputs = {"rendered": str(out_path)}
+        if args.artifacts:
+            saved = save_all_artifacts(article, {args.format: result.content}, out_dir)
+            outputs.update(saved)
+        if args.pdf_engine != "none":
+            # Render HTML then PDF via the HTML path
+            html_render = render_article(article, "html")
+            html_path = out_dir / html_render.default_filename(article.slug)
+            html_path.write_text(html_render.content, encoding="utf-8")
+            pdf_path = html_path.with_suffix(".pdf")
+            if _render_pdf(html_path, pdf_path, args.pdf_engine):
+                outputs["pdf"] = str(pdf_path)
+        if args.json and isinstance(args.json, str) and args.json != "store_true":
+            print(json.dumps(outputs))
+        else:
+            for key, val in outputs.items():
+                print(f"OK: {val}")
+        return 0
+
+    # Legacy markdown path
     md_path = Path(args.md).absolute()
     if not md_path.is_file() and not md_path.is_symlink():
         print(f"ERROR: {md_path} not a file", file=sys.stderr)
         return 1
-    out_dir = Path(args.out_dir).resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         html_path = _render_html(md_path, out_dir, args.hero)
@@ -488,7 +565,7 @@ def main() -> int:
         if _render_pdf(html_path, pdf_path, args.pdf_engine):
             result["pdf"] = str(pdf_path)
 
-    if args.json:
+    if args.json and isinstance(args.json, str):
         print(json.dumps(result))
     else:
         print(f"OK: {html_path}")
