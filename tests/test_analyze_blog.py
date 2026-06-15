@@ -266,6 +266,85 @@ class TestAnalyzeLinks:
         assert result["internal_count"] == 0
         assert result["external_count"] == 0
 
+    def test_detects_html_anchor_links(self):
+        content = '<a href="/about">About us</a> and <a href="https://example.com">Example</a>'
+        result = analyze_blog.analyze_links(content)
+        assert result["internal_count"] >= 1
+        assert result["external_count"] >= 1
+
+    def test_detects_html_anchor_without_text(self):
+        content = '<a href="https://example.com"></a>'
+        result = analyze_blog.analyze_links(content)
+        assert result["external_count"] >= 1
+
+    def test_ignores_html_anchor_hash_href(self):
+        content = '<a href="#section">Jump</a>'
+        result = analyze_blog.analyze_links(content)
+        assert result["internal_count"] == 0
+
+    def test_ignores_html_anchor_javascript_href(self):
+        content = '<a href="javascript:void(0)">Click</a>'
+        result = analyze_blog.analyze_links(content)
+        assert result["total_links"] == 0
+
+    def test_combined_markdown_and_html_links(self):
+        content = (
+            "[md internal](/page) and [md external](https://example.com)\n"
+            '<a href="/html-page">HTML internal</a> and '
+            '<a href="https://html-example.com">HTML external</a>'
+        )
+        result = analyze_blog.analyze_links(content)
+        assert result["internal_count"] == 2
+        assert result["external_count"] == 2
+        assert result["total_links"] == 4
+
+    def test_html_links_in_div_blocks(self):
+        content = (
+            '<div class="related">\n'
+            '  <a href="/blog/post1">Related Post 1</a>\n'
+            '  <a href="https://external.com/article">External Ref</a>\n'
+            '</div>'
+        )
+        result = analyze_blog.analyze_links(content)
+        assert result["internal_count"] >= 1
+        assert result["external_count"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# Originality analysis
+# ---------------------------------------------------------------------------
+
+
+class TestAnalyzeOriginality:
+    def test_detects_english_first_person(self):
+        content = "I tested this approach and found a 40% improvement."
+        result = analyze_blog.analyze_originality(content)
+        assert "first_person_experience" in result["markers"]
+
+    def test_detects_spanish_first_person_preterite(self):
+        content = "Cuando entré al mercado, probé tres herramientas diferentes."
+        result = analyze_blog.analyze_originality(content)
+        assert "first_person_experience" in result["markers"]
+
+    def test_detects_spanish_first_person_present_perfect(self):
+        content = "He visitado muchos sitios y he probado varias estrategias."
+        result = analyze_blog.analyze_originality(content)
+        assert "first_person_experience" in result["markers"]
+
+    def test_detects_spanish_nosotros(self):
+        content = "Nosotros analizamos los datos y encontramos patrones claros."
+        result = analyze_blog.analyze_originality(content)
+        assert "first_person_experience" in result["markers"]
+
+    def test_spanish_first_person_in_html_block(self):
+        content = '<div class="experience"><p>Cuando entré, me explicó el proceso y lo visité varias veces. Pedí una demo y he probado el producto.</p></div>'
+        result = analyze_blog.analyze_originality(content)
+        assert "first_person_experience" in result["markers"]
+
+    def test_no_first_person(self):
+        result = analyze_blog.analyze_originality("The data shows a clear trend.")
+        assert "first_person_experience" not in result["markers"]
+
 
 # ---------------------------------------------------------------------------
 # Schema analysis

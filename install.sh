@@ -5,7 +5,7 @@ set -euo pipefail
 # Installs the blog skill ecosystem to ~/.claude/skills/ and ~/.claude/agents/
 #
 # One-command install:
-#   curl -sL https://raw.githubusercontent.com/AgriciDaniel/claude-blog/main/install.sh | bash
+#   curl -sL https://raw.githubusercontent.com/LZmx/claude-blog-enhanced/main/install.sh | bash
 
 # Declared outside main() so the EXIT trap can access it after main() returns
 TEMP_DIR=""
@@ -29,8 +29,8 @@ main() {
         echo "→ Cloning claude-blog..."
         TEMP_DIR="$(mktemp -d)"
         trap 'rm -rf "${TEMP_DIR}"' EXIT
-        git clone --depth 1 https://github.com/AgriciDaniel/claude-blog.git "${TEMP_DIR}/claude-blog" 2>/dev/null
-        SCRIPT_DIR="${TEMP_DIR}/claude-blog"
+        git clone --depth 1 https://github.com/LZmx/claude-blog-enhanced.git "${TEMP_DIR}/claude-blog-enhanced" 2>/dev/null
+        SCRIPT_DIR="${TEMP_DIR}/claude-blog-enhanced"
     fi
 
     # Check prerequisites
@@ -130,6 +130,15 @@ main() {
             chmod +x "${SKILL_DIR}/blog/scripts/${script_name}"
         fi
         echo "  + scripts/${script_name}"
+    done
+
+    # Copy canonical module directories so scripts can import them
+    local module_dir
+    for module_dir in canonical renderers publishers validators; do
+        if [ -d "${SCRIPT_DIR}/${module_dir}" ]; then
+            cp -r "${SCRIPT_DIR}/${module_dir}" "${HOME}/.claude/scripts/${module_dir}"
+            echo "  + ${module_dir}/"
+        fi
     done
 
     # Install Python dependencies (closes audit VULN-507/804: capture stderr

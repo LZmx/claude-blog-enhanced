@@ -676,12 +676,57 @@ def analyze_schema(content: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _extract_html_links(content: str) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+    """Extract internal and external links from HTML <a> tags.
+
+    Uses BeautifulSoup when available (for robust nested-element text extraction),
+    falls back to regex for href+text pairs.
+    """
+    internal: list[tuple[str, str]] = []
+    external: list[tuple[str, str]] = []
+
+    if HAS_BS4:
+        soup = BeautifulSoup(content, 'html.parser')
+        for a_tag in soup.find_all('a', href=True):
+            href = str(a_tag['href'])
+            if href.startswith('#') or href.startswith('javascript:'):
+                continue
+            text = (a_tag.get_text(strip=True) or href)
+            if href.startswith(('http://', 'https://')):
+                external.append((text, href))
+            else:
+                internal.append((text, href))
+        return internal, external
+
+    for href, text in re.findall(
+        r'<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>([^<]*)</a>',
+        content, re.IGNORECASE,
+    ):
+        if href.startswith('#') or href.startswith('javascript:'):
+            continue
+        text = text.strip() or href
+        if href.startswith(('http://', 'https://')):
+            external.append((text, href))
+        else:
+            internal.append((text, href))
+
+    return internal, external
+
+
 def analyze_links(content: str) -> dict[str, Any]:
-    """Analyze internal and external links, anchor quality, and tiers."""
-    # Internal links: relative paths (not starting with http or /)
+    """Analyze internal and external links, anchor quality, and tiers.
+
+    Handles both markdown ``[text](url)`` and HTML ``<a href="url">text</a>``
+    syntax.  Uses BeautifulSoup for robust HTML parsing when available.
+    """
+    # Markdown links
     internal = re.findall(r'\[([^\]]+)\]\((?!https?://|#)([^)]+)\)', content)
-    # External links
     external = re.findall(r'\[([^\]]+)\]\((https?://[^)]+)\)', content)
+
+    # HTML links
+    html_internal, html_external = _extract_html_links(content)
+    internal.extend(html_internal)
+    external.extend(html_external)
 
     bad_anchor_keywords = {'click here', 'read more', 'this article', 'here', 'link', 'this'}
     bad_anchors = [a for a, _ in internal + external if a.lower().strip() in bad_anchor_keywords]
@@ -707,7 +752,11 @@ def analyze_links(content: str) -> dict[str, Any]:
 
 
 def analyze_originality(content: str) -> dict[str, Any]:
-    """Detect originality markers: original data, personal experience, first person."""
+    """Detect originality markers: original data, personal experience, first person.
+
+    Supports English and Spanish first-person markers so content inside HTML
+    blocks or mixed-language posts is scored correctly.
+    """
     markers: list[str] = []
 
     if re.search(r'\[ORIGINAL DATA\]', content, re.IGNORECASE):
@@ -716,10 +765,19 @@ def analyze_originality(content: str) -> dict[str, Any]:
         markers.append('personal_experience_tag')
 
     first_person_patterns = [
+        # English
         r'\bI\s+(?:found|discovered|tested|built|created|noticed|learned|experienced)\b',
         r'\b(?:we|our team)\s+(?:tested|built|ran|analyzed|measured|conducted|found|discovered)\b',
         r'\bin (?:my|our) experience\b',
         r'\bfrom (?:my|our) (?:testing|research|analysis|work)\b',
+        # Spanish - first person singular preterite (-ar: -é, -er/-ir: -í)
+        r'\b\w{3,}(?:é|aste)\b',
+        r'\b\w{3,}í\b',
+        # Spanish - first person singular present perfect (he + ado/ido)
+        r'\bhe\s+\w+(?:ado|ido)\b',
+        # Spanish - first person plural markers
+        r'\bnosotros\s+\w+',
+        r'\b\w{3,}(?:amos|imos)\b',
     ]
     first_person_count = 0
     for pattern in first_person_patterns:
