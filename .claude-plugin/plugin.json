@@ -1,13 +1,13 @@
 {
-  "name": "claude-blog",
-  "description": "AI-powered blog skill suite with 30 sub-skills and 5 agents. FLOW framework integration (Find/Optimize/Win, 30 evidence-led prompts), semantic topic-cluster planning + execution, multilingual publishing (translate/localize/locale-audit), Google API integration (PageSpeed, CrUX, GSC, GA4, YouTube, NLP, Keywords), YouTube video embedding, persona-driven writing, two-tier AI slop detection, 0-4 editorial heuristics rubric, cognitive-load assessment, durable BRAND.md + VOICE.md context, API-free last-30-days discourse research, 5-dimension research quality rubric, 6-LAW synthesis contract, fact-checking, cannibalization detection, CMS taxonomy sync, NotebookLM research, Gemini TTS audio narration, 5-category scoring, and Gemini image generation. Optimized for Google rankings and AI citations (GEO/AEO).",
-  "version": "1.9.1",
+  "name": "claude-blog-enhanced",
+  "description": "AI-powered blog skill suite with 30 sub-skills, 5 agents, 13 content templates (including E-E-A-T), and 5-category 100-point quality scoring. FLOW framework integration (Find/Optimize/Win, 30 evidence-led prompts), semantic topic-cluster planning + execution, multilingual publishing (translate/localize/locale-audit), Google API integration (PageSpeed, CrUX, GSC, GA4, YouTube, NLP, Keywords), persona-driven writing, durable BRAND.md + VOICE.md context, API-free last-30-days discourse research, fact-checking, cannibalization detection, NotebookLM research, Gemini TTS audio narration, and Gemini image generation. Optimized for Google rankings (December 2025 Core Update, E-E-A-T) and AI citations (GEO/AEO).",
+  "version": "2.0.3",
   "author": {
-    "name": "AgriciDaniel",
-    "url": "https://github.com/AgriciDaniel"
+    "name": "LZmx",
+    "url": "https://github.com/LZmx"
   },
-  "homepage": "https://github.com/AgriciDaniel/claude-blog",
-  "repository": "https://github.com/AgriciDaniel/claude-blog",
+  "homepage": "https://github.com/LZmx/claude-blog-enhanced",
+  "repository": "https://github.com/LZmx/claude-blog-enhanced",
   "license": "MIT",
   "keywords": [
     "blog", "seo", "content", "writing", "ai-citations",
@@ -18,6 +18,7 @@
     "multilingual", "translation", "localization", "hreflang", "i18n",
     "discourse-research", "voice-of-customer", "social-listening",
     "research-quality", "synthesis-contract", "ai-slop-detection",
-    "editorial-heuristics", "cognitive-load", "brand-context"
+    "editorial-heuristics", "cognitive-load", "brand-context",
+    "eeat", "experience-expertise-authority-trust"
   ]
 }

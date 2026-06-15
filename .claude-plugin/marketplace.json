@@ -1,16 +1,16 @@
 {
-  "name": "agricidaniel-blog",
+  "name": "lzmx-blog-enhanced",
   "owner": {
-    "name": "AgriciDaniel"
+    "name": "LZmx"
   },
   "metadata": {
-    "description": "Blog creation and optimization tools for Claude Code"
+    "description": "Enhanced blog creation and optimization tools for Claude Code - E-E-A-T ready"
   },
   "plugins": [
     {
-      "name": "claude-blog",
+      "name": "claude-blog-enhanced",
       "source": "./",
-      "description": "AI-powered blog creation, optimization, and management with 30 sub-skills, 5 agents, FLOW framework integration, semantic topic-cluster execution, multilingual publishing, brand and discourse context auto-load, and 5-category scoring. Optimized for Google rankings and AI citations."
+      "description": "AI-powered blog creation, optimization, and management with 30 sub-skills, 5 agents, 13 content templates (including E-E-A-T), FLOW framework integration, semantic topic-cluster execution, multilingual publishing, brand and discourse context auto-load, and 5-category 100-point scoring. Optimized for Google rankings (December 2025 Core Update, E-E-A-T) and AI citations (GEO/AEO)."
     }
   ]
 }

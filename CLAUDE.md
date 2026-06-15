@@ -154,13 +154,13 @@ Submit at: claude.ai/settings/plugins/submit or platform.claude.com/plugins/subm
 
 ### Self-Hosted Marketplace
 ```
-/plugin marketplace add AgriciDaniel/claude-blog
-/plugin install claude-blog@AgriciDaniel-claude-blog
+/plugin marketplace add LZmx/claude-blog-enhanced
+/plugin install claude-blog-enhanced@LZmx-claude-blog-enhanced
 ```
 
 ### Standalone Install (no marketplace)
 ```bash
-curl -sL https://raw.githubusercontent.com/AgriciDaniel/claude-blog/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/LZmx/claude-blog-enhanced/main/install.sh | bash
 ```
 
 ## Release Blog Post
