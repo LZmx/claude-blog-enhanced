@@ -362,7 +362,9 @@ def analyze_citations(content: str) -> dict[str, Any]:
     for stat in stat_patterns:
         pos = content.find(stat)
         if pos >= 0:
-            context = content[pos:pos + 200]
+            start = max(0, pos - 200)
+            end = min(len(content), pos + 200)
+            context = content[start:end]
             if re.search(r'\[.+\]\(https?://', context) or re.search(r'\([^)]*20\d{2}[^)]*\)', context):
                 sourced_stats += 1
             else:

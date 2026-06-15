@@ -15,7 +15,7 @@ py-modules = []
 
 [project]
 name = "claude-blog-enhanced"
-version = "2.0.0"
+version = "2.0.2"
 description = "AI-powered blog creation and optimization skill for Claude Code (enhanced fork)"
 readme = "README.md"
 license = {text = "MIT"}
@@ -84,6 +84,14 @@ dev = [
     "pytest>=8.0,<9.0",
     "textstat>=0.7.3,<1.0.0",
     "beautifulsoup4>=4.12.0,<5.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
+test = [
+    "pytest>=8.4.2",
 ]
 
 [tool.pytest.ini_options]

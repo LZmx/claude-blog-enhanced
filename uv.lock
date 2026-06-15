@@ -350,8 +350,8 @@ wheels = [
 ]
 
 [[package]]
-name = "claude-blog"
-version = "1.9.0"
+name = "claude-blog-enhanced"
+version = "2.0.0"
 source = { editable = "." }
 
 [package.optional-dependencies]
@@ -391,6 +391,14 @@ presentation = [
     { name = "weasyprint" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+test = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", marker = "extra == 'core'", specifier = ">=4.12.0,<5.0.0" },
@@ -418,6 +426,10 @@ requires-dist = [
     { name = "weasyprint", marker = "extra == 'presentation'", specifier = ">=60.2,<65" },
 ]
 provides-extras = ["core", "advanced", "google", "ads", "presentation", "dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.4.2" }]
+test = [{ name = "pytest", specifier = ">=8.4.2" }]
 
 [[package]]
 name = "click"

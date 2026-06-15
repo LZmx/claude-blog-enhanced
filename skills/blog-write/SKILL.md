@@ -80,21 +80,24 @@ For a deeper surface-by-surface workflow, see
 Select the appropriate content template from the 12 templates in
 `skills/blog/templates/` (the main `blog` skill owns the templates directory).
 
-1. **Auto-detect content type** from the topic and search intent:
-   | Signal | Template |
-   |--------|----------|
-   | "How to...", process, steps | `how-to-guide` |
-   | "Best X", "Top N", list format | `listicle` |
-   | Client result, before/after, metrics | `case-study` |
-   | "X vs Y", comparison, alternatives | `comparison` |
-   | Broad topic, comprehensive guide | `pillar-page` |
-   | "Is X worth it", product evaluation | `product-review` |
-   | Opinion, prediction, industry take | `thought-leadership` |
-   | Expert quotes, multi-source collection | `roundup` |
-   | Code walkthrough, tool demo, technical | `tutorial` |
-   | Breaking news, algorithm update, event | `news-analysis` |
-   | Survey results, experiment, original data | `data-research` |
-   | Q&A, knowledge base, "What is X" | `faq-knowledge` |
+   1. **Auto-detect content type** from the topic and search intent:
+    | Signal | Template |
+    |--------|----------|
+    | "How to...", process, steps | `how-to-guide` |
+    | "Best X", "Top N", list format | `listicle` |
+    | Client result, before/after, metrics | `case-study` |
+    | "X vs Y", comparison, alternatives | `comparison` |
+    | Broad topic, comprehensive guide | `pillar-page` |
+    | "Is X worth it", product evaluation | `product-review` |
+    | Opinion, prediction, industry take | `thought-leadership` |
+    | Expert quotes, multi-source collection | `roundup` |
+    | Code walkthrough, tool demo, technical | `tutorial` |
+    | Breaking news, algorithm update, event | `news-analysis` |
+    | Survey results, experiment, original data | `data-research` |
+    | Q&A, knowledge base, "What is X" | `faq-knowledge` |
+    | YMYL topic, competitive query, trust-critical | `eeat` |
+
+    The `eeat` template is the default fallback for YMYL topics (health, finance, safety, legal) and any competitive query where E-E-A-T differentiation determines ranking. It enforces named authorship, primary-source citations, first-hand experience markers, visible freshness, answer-first formatting, and full schema requirements per the December 2025 Core Update. When in doubt between `eeat` and another template, prefer `eeat` — it subsumes the structural requirements of other templates while adding trust-signal enforcement.
 
 2. **Load the matching template**: Read from `skills/blog/templates/<type>.md`
 3. **Adapt the outline** - Use the template's section structure, heading patterns,

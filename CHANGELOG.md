@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes._
 
+## [2.0.2] - 2026-06-15
+
+### E-E-A-T content template + citation analyzer fix
+
+**Added**
+
+- `skills/blog/templates/eeat.md` (new): 13th content template for high-authority blog posts structured around Google's E-E-A-T framework. Named authorship, answer-first formatting, first-hand experience markers, primary-source citations, visible freshness, FAQ schema, and full JSON-LD requirements. Optimized for the December 2025 Core Update which extended E-E-A-T requirements to all competitive queries. Ships with a 37-item Pre-Publish E-E-A-T Checklist across 6 dimensions (Trust, Experience, Expertise, Authority, Freshness, AI Citation Readiness).
+- `skills/blog-write/SKILL.md`: Phase 1.5 template detection updated to match `eeat` template on YMYL or trust-critical topics. When ambiguous between `eeat` and another template, `eeat` is the recommended default — it subsumes structural requirements of other templates while adding trust-signal enforcement.
+
+**Fixed**
+
+- `scripts/analyze_blog.py`: citation proximity window changed from forward-only (`content[pos:pos+200]`) to bidirectional (`content[max(0,pos-200):min(len,pos+200)]`). Previously, stats embedded inline in prose text like `[Source](url) found that 58% of marketers...` were classified as unsourced because the citation precedes the percentage and the forward-only window never found it. Now catches citations in a 400-character window centered on the stat.
+
 ## [1.9.1] - 2026-05-18
 
 ### Security hardening pass (11 commits)
