@@ -40,9 +40,11 @@ class MarkdownRenderer(BaseRenderer):
         if article.author:
             lines.append(f"author: \"{article.author}\"")
         if article.tags:
-            lines.append(f"tags: [{', '.join(f'\"{t}\"' for t in article.tags)}]")
+            quoted = ', '.join(f'"{t}"' for t in article.tags)
+            lines.append(f"tags: [{quoted}]")
         if article.categories:
-            lines.append(f"categories: [{', '.join(f'\"{c}\"' for c in article.categories)}]")
+            quoted = ', '.join(f'"{c}"' for c in article.categories)
+            lines.append(f"categories: [{quoted}]")
         if article.canonical_url:
             lines.append(f"canonicalURL: \"{article.canonical_url}\"")
         if article.language and article.language != "en":
