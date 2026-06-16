@@ -7,7 +7,7 @@ description: >
   flagging, vocabulary diversity). Supports export formats (markdown, JSON,
   table) and batch analysis with sorting. Generates prioritized recommendations
   (Critical/High/Medium/Low) with specific fixes. Works with any format (MDX,
-  markdown, HTML, URL). Use when user says "analyze blog", "audit blog",
+  markdown, HTML, WordPress, URL). Use when user says "analyze blog", "audit blog",
   "blog score", "check blog quality", "blog review", "rate this blog",
   "blog health check".
 user-invokable: true
@@ -30,7 +30,7 @@ Reference documents (paths from repo root):
 
 ## Input Handling
 
-- **Local file**: Read the file directly
+- **Local file**: Read the file directly. Supports markdown (`.md`), MDX (`.mdx`), HTML (`.html`), WordPress Classic (`.wp.html`), and WordPress Blocks (`.blocks.html`) — no conversion needed.
 - **URL**: Fetch with WebFetch, extract content
 - **Directory**: Scan for blog files, audit all (batch mode)
 - **Flags**: `--format json|table`, `--batch`, `--sort score`, `--rubric`, `--cognitive-load`

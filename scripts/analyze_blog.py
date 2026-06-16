@@ -1801,7 +1801,7 @@ def _format_category_detail(result: dict[str, Any], category: str) -> str:
 def _process_batch(directory: Path, sort_key: str = 'score') -> dict[str, Any]:
     """Analyze all blog files in a directory."""
     results: list[dict[str, Any]] = []
-    for ext in ['*.md', '*.mdx', '*.html']:
+    for ext in ['*.md', '*.mdx', '*.html', '*.wp.html', '*.blocks.html']:
         for f in directory.glob(ext):
             results.append(analyze_file(str(f)))
 
