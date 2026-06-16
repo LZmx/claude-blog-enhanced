@@ -15,7 +15,7 @@ license: MIT
 compatibility: Requires claude-blog (blog-write). Optional integration with claude-seo (seo-hreflang) for richer hreflang validation.
 metadata:
   author: AgriciDaniel
-  version: "2.0.5"
+  version: "2.0.6"
   category: blog
 ---
 

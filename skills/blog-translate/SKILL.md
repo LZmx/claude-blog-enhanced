@@ -18,7 +18,7 @@ license: MIT
 compatibility: Standalone within claude-blog. Invoked by blog-multilingual.
 metadata:
   author: AgriciDaniel
-  version: "2.0.5"
+  version: "2.0.6"
   category: blog
 ---
 

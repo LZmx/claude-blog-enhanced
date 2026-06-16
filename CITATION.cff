@@ -11,7 +11,7 @@ authors:
 repository-code: "https://github.com/AgriciDaniel/claude-blog"
 url: "https://claude-blog.md"
 license: MIT
-version: 2.0.5
+version: 2.0.6
 date-released: "2026-05-18"
 keywords:
   - claude-code

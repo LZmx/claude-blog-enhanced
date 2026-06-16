@@ -102,6 +102,13 @@ TRANSITION_WORDS = [
     "in addition", "as a result", "in other words", "that said",
     "in particular", "specifically", "alternatively", "conversely",
     "in fact", "notably", "importantly", "significantly",
+    # Spanish
+    "sin embargo", "por lo tanto", "además", "no obstante",
+    "por otro lado", "por ejemplo", "en otras palabras",
+    "como resultado", "en particular", "es decir",
+    "al contrario", "por consiguiente", "mientras tanto",
+    "de hecho", "sobre todo", "asimismo", "igualmente",
+    "en conclusión", "en resumen", "finalmente",
 ]
 
 # ---------------------------------------------------------------------------
@@ -140,17 +147,41 @@ TIER2_DOMAINS = [
 # ---------------------------------------------------------------------------
 
 
-def _extract_html_frontmatter(content: str) -> dict[str, Any]:
-    """Extract title and meta from WordPress/HTML content."""
+def _extract_html_frontmatter(content: str, file_path: str = '') -> dict[str, Any]:
+    """Extract title and meta from WordPress/HTML content.
+
+    WordPress post body content does not include <title> or <meta> tags
+    (those live in the page <head>).  Falls back to:
+      1. <h1> tag in the body
+      2. First <h2> tag
+      3. File name (without extension, cleaned)
+      4. First <p> as description
+    """
     fm: dict[str, Any] = {}
     title = re.search(r'<title>(.*?)</title>', content, re.IGNORECASE | re.DOTALL)
     if title:
         fm['title'] = title.group(1).strip()
+    else:
+        h1 = re.search(r'<h1[^>]*>(.*?)</h1>', content, re.IGNORECASE | re.DOTALL)
+        if h1:
+            fm['title'] = re.sub(r'<[^>]+>', '', h1.group(1)).strip()
+        else:
+            h2 = re.search(r'<h2[^>]*>(.*?)</h2>', content, re.IGNORECASE | re.DOTALL)
+            if h2:
+                fm['title'] = re.sub(r'<[^>]+>', '', h2.group(1)).strip()
+            elif file_path:
+                stem = Path(file_path).stem
+                fm['title'] = stem.replace('-', ' ').replace('_', ' ').title()
+
     desc = re.search(r'<meta\s+name=["\']description["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
     if not desc:
         desc = re.search(r'<meta\s+property=["\']og:description["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
     if desc:
         fm['description'] = desc.group(1).strip()
+    else:
+        first_p = re.search(r'<p[^>]*>(.*?)</p>', content, re.IGNORECASE | re.DOTALL)
+        if first_p:
+            fm['description'] = re.sub(r'<[^>]+>', '', first_p.group(1)).strip()[:200]
     date = re.search(r'<meta\s+property=["\']article:published_time["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
     if date:
         fm['date'] = date.group(1).strip()[:10]
@@ -163,7 +194,7 @@ def _extract_html_frontmatter(content: str) -> dict[str, Any]:
     return fm
 
 
-def extract_frontmatter(content: str) -> dict[str, Any]:
+def extract_frontmatter(content: str, file_path: str = '') -> dict[str, Any]:
     """Extract YAML frontmatter from markdown/MDX/HTML content."""
     frontmatter: dict[str, Any] = {}
     match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
@@ -177,7 +208,7 @@ def extract_frontmatter(content: str) -> dict[str, Any]:
                 if value:
                     frontmatter[key] = value
     if not frontmatter:
-        frontmatter = _extract_html_frontmatter(content)
+        frontmatter = _extract_html_frontmatter(content, file_path)
     return frontmatter
 
 
@@ -523,6 +554,10 @@ def analyze_self_promotion(content: str, brand_name: str = '') -> dict[str, Any]
         r'(?i)at \w+,\s+we',
         r'(?i)our (?:team|company|product|platform|solution)',
         r'(?i)we (?:offer|provide|deliver|help|specialize)',
+        # Spanish
+        r'(?i)en \w+,\s+(?:nosotros|ofrecemos)',
+        r'(?i)nuestr[oa] (?:equipo|empresa|producto|plataforma|solución)',
+        r'(?i)(?:nosotros|ofrecemos) (?:ofrecemos|proporcionamos|entregamos|ayudamos|nos especializamos)',
     ]
 
     promo_count = sum(len(re.findall(p, content)) for p in promo_patterns)
@@ -903,6 +938,9 @@ def analyze_engagement(content: str) -> dict[str, Any]:
         r'(?i)\bfor example\b', r'(?i)\bfor instance\b', r'(?i)\bsuch as\b',
         r'(?i)\bconsider\b', r'(?i)\blet\'s say\b', r'(?i)\bimagine\b',
         r'(?i)\bhere\'s (?:an|a) example\b',
+        # Spanish
+        r'(?i)\bpor ejemplo\b', r'(?i)\bcomo por ejemplo\b',
+        r'(?i)\ba modo de ejemplo\b',
     ]
     example_count = sum(len(re.findall(p, content)) for p in example_patterns)
 
@@ -945,8 +983,8 @@ def analyze_ai_citation_readiness(content: str, headings_info: dict[str, Any],
                 qa_pairs += 1
 
     # Entity clarity: detect defined terms (bold or <strong> followed by explanations)
-    entity_definitions = len(re.findall(r'\*\*[^*]+\*\*\s*(?:is|are|refers to|means)', content))
-    entity_definitions += len(re.findall(r'<strong>(.*?)</strong>\s*(?:is|are|refers to|means)', content, re.IGNORECASE))
+    entity_definitions = len(re.findall(r'\*\*[^*]+\*\*\s*(?:is|are|refers to|means|es|son|se refiere a|significa|se llama)', content))
+    entity_definitions += len(re.findall(r'<strong>(.*?)</strong>\s*(?:is|are|refers to|means|es|son|se refiere a|significa|se llama)', content, re.IGNORECASE))
 
     # Extraction-friendly structures
     has_tldr = bool(re.search(
@@ -1625,7 +1663,7 @@ def analyze_file(file_path: str) -> dict[str, Any]:
         return {'error': f'File not found: {file_path}'}
 
     content = path.read_text(encoding='utf-8')
-    frontmatter = extract_frontmatter(content)
+    frontmatter = extract_frontmatter(content, file_path)
     body = strip_frontmatter(content)
 
     # Strip markdown formatting for plain-text analysis
