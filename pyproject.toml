@@ -15,7 +15,7 @@ py-modules = []
 
 [project]
 name = "claude-blog-enhanced"
-version = "2.0.6"
+version = "2.0.7"
 description = "AI-powered blog creation and optimization skill for Claude Code (enhanced fork)"
 readme = "README.md"
 license = {text = "MIT"}

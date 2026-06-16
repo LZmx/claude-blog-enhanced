@@ -17,7 +17,7 @@ argument-hint: "[generate|edit|setup] [description-or-path]"
 license: MIT
 metadata:
   author: AgriciDaniel
-  version: "2.0.6"
+  version: "2.0.7"
   mcp-package: "@ycse/nanobanana-mcp"
 ---
 

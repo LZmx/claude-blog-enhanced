@@ -109,6 +109,9 @@ TRANSITION_WORDS = [
     "al contrario", "por consiguiente", "mientras tanto",
     "de hecho", "sobre todo", "asimismo", "igualmente",
     "en conclusión", "en resumen", "finalmente",
+    "por supuesto", "por el contrario", "ante todo",
+    "al fin y al cabo", "de todas formas", "en cambio",
+    "a pesar de", "no obstante", "por otra parte",
 ]
 
 # ---------------------------------------------------------------------------
@@ -983,8 +986,8 @@ def analyze_ai_citation_readiness(content: str, headings_info: dict[str, Any],
                 qa_pairs += 1
 
     # Entity clarity: detect defined terms (bold or <strong> followed by explanations)
-    entity_definitions = len(re.findall(r'\*\*[^*]+\*\*\s*(?:is|are|refers to|means|es|son|se refiere a|significa|se llama)', content))
-    entity_definitions += len(re.findall(r'<strong>(.*?)</strong>\s*(?:is|are|refers to|means|es|son|se refiere a|significa|se llama)', content, re.IGNORECASE))
+    entity_definitions = len(re.findall(r'\*\*[^*]+\*\*[^*\n]*?(?:is|are|refers to|means|es|son|se refiere a|significa|se llama)', content))
+    entity_definitions += len(re.findall(r'<strong>(.*?)</strong>[^<]*?(?:is|are|refers to|means|es|son|se refiere a|significa|se llama)', content, re.IGNORECASE))
 
     # Extraction-friendly structures
     has_tldr = bool(re.search(

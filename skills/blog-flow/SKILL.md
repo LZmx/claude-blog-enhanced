@@ -12,7 +12,7 @@ license: MIT
 compatibility: Requires Claude Code and Python 3.11+ for the sync script
 metadata:
   author: AgriciDaniel
-  version: "2.0.6"
+  version: "2.0.7"
   category: blog
 ---
 
