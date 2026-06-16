@@ -116,7 +116,7 @@ CONTENT_TYPE_BENCHMARKS: dict[str, tuple[int, int]] = {
     'case-study': (1500, 3000),
     'news': (600, 1200),
     'review': (1000, 2000),
-    'default': (1200, 3000),
+    'default': (800, 4000),
 }
 
 # ---------------------------------------------------------------------------
@@ -140,8 +140,31 @@ TIER2_DOMAINS = [
 # ---------------------------------------------------------------------------
 
 
+def _extract_html_frontmatter(content: str) -> dict[str, Any]:
+    """Extract title and meta from WordPress/HTML content."""
+    fm: dict[str, Any] = {}
+    title = re.search(r'<title>(.*?)</title>', content, re.IGNORECASE | re.DOTALL)
+    if title:
+        fm['title'] = title.group(1).strip()
+    desc = re.search(r'<meta\s+name=["\']description["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
+    if not desc:
+        desc = re.search(r'<meta\s+property=["\']og:description["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
+    if desc:
+        fm['description'] = desc.group(1).strip()
+    date = re.search(r'<meta\s+property=["\']article:published_time["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
+    if date:
+        fm['date'] = date.group(1).strip()[:10]
+    author = re.search(r'<meta\s+name=["\']author["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
+    if author:
+        fm['author'] = author.group(1).strip()
+    og_image = re.search(r'<meta\s+property=["\']og:image["\'][^>]*content=["\']([^"\']*)["\']', content, re.IGNORECASE)
+    if og_image:
+        fm['image'] = og_image.group(1).strip()
+    return fm
+
+
 def extract_frontmatter(content: str) -> dict[str, Any]:
-    """Extract YAML frontmatter from markdown/MDX content."""
+    """Extract YAML frontmatter from markdown/MDX/HTML content."""
     frontmatter: dict[str, Any] = {}
     match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
     if match:
@@ -153,6 +176,8 @@ def extract_frontmatter(content: str) -> dict[str, Any]:
                 value = value.strip().strip('"').strip("'")
                 if value:
                     frontmatter[key] = value
+    if not frontmatter:
+        frontmatter = _extract_html_frontmatter(content)
     return frontmatter
 
 
@@ -164,6 +189,22 @@ def strip_frontmatter(content: str) -> str:
 # ---------------------------------------------------------------------------
 # Heading analysis (extended from original)
 # ---------------------------------------------------------------------------
+
+
+def _parse_html_headings(content: str) -> list[dict[str, Any]]:
+    """Parse HTML heading tags (h1-h6) into the same structure as markdown headings."""
+    headings: list[dict[str, Any]] = []
+    for match in re.finditer(r'<h([1-6])[^>]*>(.*?)</h\1>', content, re.IGNORECASE | re.DOTALL):
+        level = int(match.group(1))
+        text = re.sub(r'<[^>]+>', '', match.group(2)).strip()
+        if text:
+            is_question = text.rstrip().endswith('?')
+            headings.append({
+                'level': level,
+                'text': text,
+                'is_question': is_question,
+            })
+    return headings
 
 
 def analyze_headings(content: str) -> dict[str, Any]:
@@ -178,6 +219,8 @@ def analyze_headings(content: str) -> dict[str, Any]:
             'text': text,
             'is_question': is_question,
         })
+    if not headings:
+        headings = _parse_html_headings(content)
 
     h1_count = sum(1 for h in headings if h['level'] == 1)
     h2_count = sum(1 for h in headings if h['level'] == 2)
@@ -260,10 +303,28 @@ def analyze_paragraphs(content: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _classify_image_source(src: str) -> str:
+    """Classify image source into a known bucket."""
+    if 'pixabay' in src:
+        return 'pixabay'
+    if 'unsplash' in src:
+        return 'unsplash'
+    if 'pexels' in src:
+        return 'pexels'
+    if 'wikimedia' in src or 'commons' in src:
+        return 'wikimedia'
+    if 'openverse' in src:
+        return 'openverse'
+    if 'images.ctfassets' in src or 'cdn.contentful' in src:
+        return 'contentful'
+    if 'wp.com' in src or 'wordpress' in src:
+        return 'wordpress'
+    return 'other'
+
+
 def analyze_images(content: str) -> dict[str, Any]:
     """Count images and check alt text, formats, optimization signals."""
     md_images = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', content)
-    html_images = re.findall(r'<img[^>]+src=["\']([^"\']+)["\'][^>]*>', content)
 
     images: list[dict[str, Any]] = []
     for alt, src in md_images:
@@ -273,23 +334,41 @@ def analyze_images(content: str) -> dict[str, Any]:
             'has_alt': bool(alt.strip()),
             'alt_length': len(alt.strip()),
             'format': ext,
-            'source': 'pixabay' if 'pixabay' in src else
-                      'unsplash' if 'unsplash' in src else
-                      'pexels' if 'pexels' in src else 'other',
+            'source': _classify_image_source(src),
         })
 
-    for src in html_images:
-        alt_match = re.search(r'alt=["\']([^"\']*)["\']', content[content.find(src) - 200:content.find(src) + len(src)])
-        has_alt = bool(alt_match and alt_match.group(1).strip()) if alt_match else False
-        ext = Path(src.split('?')[0]).suffix.lower()
-        images.append({
-            'src': src,
-            'has_alt': has_alt,
-            'format': ext,
-            'source': 'pixabay' if 'pixabay' in src else
-                      'unsplash' if 'unsplash' in src else
-                      'pexels' if 'pexels' in src else 'other',
-        })
+    # Parse HTML images with BeautifulSoup if available for robust alt extraction
+    if HAS_BS4:
+        soup = BeautifulSoup(content, 'html.parser')
+        for img in soup.find_all('img'):
+            src = str(img.get('src', '') or '')
+            if not src:
+                continue
+            alt = str(img.get('alt', '') or '')
+            ext = Path(src.split('?')[0]).suffix.lower()
+            images.append({
+                'src': src,
+                'has_alt': bool(alt.strip()),
+                'alt_length': len(alt.strip()),
+                'format': ext,
+                'source': _classify_image_source(src),
+            })
+    else:
+        html_srcs = re.findall(r'<img[^>]+src=["\']([^"\']+)["\'][^>]*>', content)
+        done_srcs = {img['src'] for img in images}
+        for src in html_srcs:
+            if src in done_srcs:
+                continue
+            alt_match = re.search(r'alt=["\']([^"\']*)["\']', content)
+            alt_text = alt_match.group(1) if alt_match else ''
+            ext = Path(src.split('?')[0]).suffix.lower()
+            images.append({
+                'src': src,
+                'has_alt': bool(alt_text.strip()),
+                'alt_length': len(alt_text.strip()),
+                'format': ext,
+                'source': _classify_image_source(src),
+            })
 
     with_alt = sum(1 for img in images if img['has_alt'])
     modern_formats = sum(1 for img in images if img.get('format') in ('.webp', '.avif', '.svg'))
@@ -386,6 +465,15 @@ def analyze_citations(content: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _has_faq_in_html(content: str) -> tuple[bool, int]:
+    """Check for FAQ section in HTML format."""
+    has = bool(re.search(r'(?i)<h[1-3][^>]*>\s*(?:FAQ|Frequently Asked|Preguntas frecuentes|Häufig gestellte|Questions fréquentes)\s*</h[1-3]>', content))
+    if not has:
+        return False, 0
+    items = len(re.findall(r'(?i)<h[3-4][^>]*>[^<]+\?</h[3-4]>', content))
+    return True, items
+
+
 def analyze_faq(content: str) -> dict[str, Any]:
     """Check for FAQ section and schema."""
     has_faq_section = bool(re.search(r'(?i)#{1,3}\s*(?:FAQ|Frequently Asked)', content))
@@ -397,6 +485,10 @@ def analyze_faq(content: str) -> dict[str, Any]:
         if faq_match:
             faq_text = faq_match.group()
             faq_items = len(re.findall(r'^#{3,4}\s+.+\?', faq_text, re.MULTILINE))
+    if not has_faq_section:
+        html_faq, html_items = _has_faq_in_html(content)
+        has_faq_section = html_faq
+        faq_items = html_items
 
     return {
         'has_faq_section': has_faq_section,
@@ -841,15 +933,20 @@ def analyze_ai_citation_readiness(content: str, headings_info: dict[str, Any],
     lines = content.split('\n')
     for i, line in enumerate(lines):
         if re.match(r'^#{2,4}\s+.+\?', line):
-            # Check if next non-empty line starts with a direct statement
             for j in range(i + 1, min(i + 5, len(lines))):
                 if lines[j].strip():
                     if not lines[j].strip().startswith('#'):
                         qa_pairs += 1
                     break
+    if qa_pairs == 0:
+        html_headings = _parse_html_headings(content)
+        for h in html_headings:
+            if 2 <= h['level'] <= 4 and h['is_question']:
+                qa_pairs += 1
 
-    # Entity clarity: detect defined terms (bold terms followed by explanations)
+    # Entity clarity: detect defined terms (bold or <strong> followed by explanations)
     entity_definitions = len(re.findall(r'\*\*[^*]+\*\*\s*(?:is|are|refers to|means)', content))
+    entity_definitions += len(re.findall(r'<strong>(.*?)</strong>\s*(?:is|are|refers to|means)', content, re.IGNORECASE))
 
     # Extraction-friendly structures
     has_tldr = bool(re.search(

@@ -1,7 +1,7 @@
 {
   "name": "claude-blog-enhanced",
   "description": "AI-powered blog skill suite with 30 sub-skills, 5 agents, 13 content templates (including E-E-A-T), and 5-category 100-point quality scoring. FLOW framework integration (Find/Optimize/Win, 30 evidence-led prompts), semantic topic-cluster planning + execution, multilingual publishing (translate/localize/locale-audit), Google API integration (PageSpeed, CrUX, GSC, GA4, YouTube, NLP, Keywords), persona-driven writing, durable BRAND.md + VOICE.md context, API-free last-30-days discourse research, fact-checking, cannibalization detection, NotebookLM research, Gemini TTS audio narration, and Gemini image generation. Optimized for Google rankings (December 2025 Core Update, E-E-A-T) and AI citations (GEO/AEO).",
-  "version": "2.0.3",
+  "version": "2.0.5",
   "author": {
     "name": "LZmx",
     "url": "https://github.com/LZmx"
