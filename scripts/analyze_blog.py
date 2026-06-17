@@ -111,7 +111,17 @@ TRANSITION_WORDS = [
     "en conclusión", "en resumen", "finalmente",
     "por supuesto", "por el contrario", "ante todo",
     "al fin y al cabo", "de todas formas", "en cambio",
-    "a pesar de", "no obstante", "por otra parte",
+    "a pesar de", "por otra parte",
+    "por su parte", "en cuanto a", "por su ubicación",
+    "cabe destacar", "hay que señalar", "es importante",
+    "por esta razón", "debido a", "gracias a",
+    "en primer lugar", "en segundo lugar", "por último",
+    "por un lado", "por otro lado", "dicho esto",
+    "en otras palabras", "es más", "incluso",
+    "no solo", "sino también", "tanto como",
+    "así que", "de modo que", "puesto que",
+    "ya que", "dado que", "a condición de",
+    "con tal de", "siempre que", "a menos que",
 ]
 
 # ---------------------------------------------------------------------------
@@ -287,6 +297,22 @@ def analyze_headings(content: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _extract_paragraphs_html(content: str) -> list[str]:
+    """Extract paragraphs from HTML content using <p> tags or <!-- wp:paragraph --> markers."""
+    p_texts: list[str] = []
+    for m in re.finditer(r'<p[^>]*>(.*?)</p>', content, re.IGNORECASE | re.DOTALL):
+        text = re.sub(r'<[^>]+>', '', m.group(1)).strip()
+        if text and len(text.split()) >= 5:
+            p_texts.append(text)
+    if not p_texts:
+        for block in re.split(r'<!--\s*/wp:paragraph\s*-->', content):
+            block = re.sub(r'<!--\s*wp:paragraph\s*-->', '', block).strip()
+            text = re.sub(r'<[^>]+>', '', block).strip()
+            if text and len(text.split()) >= 5:
+                p_texts.append(text)
+    return p_texts
+
+
 def analyze_paragraphs(content: str) -> dict[str, Any]:
     """Analyze paragraph lengths."""
     cleaned = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
@@ -295,6 +321,8 @@ def analyze_paragraphs(content: str) -> dict[str, Any]:
     cleaned = re.sub(r'!\[.*?\]\(.*?\)', '', cleaned)
 
     paragraphs = [p.strip() for p in re.split(r'\n\s*\n', cleaned) if p.strip()]
+    if not paragraphs:
+        paragraphs = _extract_paragraphs_html(content)
 
     word_counts: list[int] = []
     over_150 = 0
@@ -510,12 +538,12 @@ def _has_faq_in_html(content: str) -> tuple[bool, int]:
 
 def analyze_faq(content: str) -> dict[str, Any]:
     """Check for FAQ section and schema."""
-    has_faq_section = bool(re.search(r'(?i)#{1,3}\s*(?:FAQ|Frequently Asked)', content))
+    has_faq_section = bool(re.search(r'(?i)#{1,3}\s*(?:FAQ|Frequently Asked|Preguntas Frecuentes|Foire Aux Questions|Häufig Gestellte Fragen|Perguntas Frequentes)', content))
     has_faq_schema = bool(re.search(r'(?i)FAQSchema|FAQPage|faqpage', content))
 
     faq_items = 0
     if has_faq_section:
-        faq_match = re.search(r'(?i)#{1,3}\s*(?:FAQ|Frequently Asked).*', content, re.DOTALL)
+        faq_match = re.search(r'(?i)#{1,3}\s*(?:FAQ|Frequently Asked|Preguntas Frecuentes|Foire Aux Questions|Häufig Gestellte Fragen|Perguntas Frequentes).*', content, re.DOTALL)
         if faq_match:
             faq_text = faq_match.group()
             faq_items = len(re.findall(r'^#{3,4}\s+.+\?', faq_text, re.MULTILINE))
@@ -618,8 +646,12 @@ def analyze_readability(text: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def analyze_sentences(text: str) -> dict[str, Any]:
-    """Analyze sentence lengths, burstiness (variance), and engagement."""
+def analyze_sentences(text: str, content: str = '') -> dict[str, Any]:
+    """Analyze sentence lengths, burstiness (variance), and engagement.
+
+    If *content* (original text with line numbers) is provided, the result
+    includes a ``long_sentences`` list with line numbers for --fix mode.
+    """
     sentences = re.split(r'(?<=[.!?])\s+', text)
     lengths = [len(s.split()) for s in sentences if len(s.split()) > 2]
     if not lengths:
@@ -630,6 +662,7 @@ def analyze_sentences(text: str) -> dict[str, Any]:
             'burstiness': 0.0,
             'std_dev': 0.0,
             'very_long_count': 0,
+            'long_sentences': [],
         }
 
     avg = sum(lengths) / len(lengths)
@@ -639,6 +672,26 @@ def analyze_sentences(text: str) -> dict[str, Any]:
     over_20 = sum(1 for l in lengths if l > 20)
     over_25 = sum(1 for l in lengths if l > 25)
     total = len(lengths)
+
+    # Build line-numbered sentence list for verbose/fix mode
+    long_sentences: list[dict[str, Any]] = []
+    if content:
+        lines = content.split('\n')
+        for sent in sentences:
+            wc = len(sent.split())
+            if wc <= 25:
+                continue
+            # Find approximate line number
+            line_no = 1
+            for i, line in enumerate(lines, 1):
+                if sent[:30].strip() in line:
+                    line_no = i
+                    break
+            long_sentences.append({
+                'line': line_no,
+                'words': wc,
+                'text': sent[:120] + ('...' if len(sent) > 120 else ''),
+            })
 
     return {
         'count': total,
@@ -650,6 +703,7 @@ def analyze_sentences(text: str) -> dict[str, Any]:
         'over_20_count': over_20,
         'over_20_pct': round(over_20 / total * 100, 1) if total else 0,
         'over_25_count': over_25,
+        'long_sentences': long_sentences,
     }
 
 
@@ -712,8 +766,12 @@ def analyze_passive_voice(text: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def analyze_transition_words(text: str) -> dict[str, Any]:
-    """Measure percentage of sentences containing transition words."""
+def analyze_transition_words(text: str, content: str = '') -> dict[str, Any]:
+    """Measure percentage of sentences containing transition words.
+
+    If *content* is provided, returns ``missing_transitions`` list with
+    line numbers for --fix mode.
+    """
     sentences = re.split(r'(?<=[.!?])\s+', text)
     sentences = [s for s in sentences if len(s.split()) > 2]
     if not sentences:
@@ -721,16 +779,28 @@ def analyze_transition_words(text: str) -> dict[str, Any]:
 
     lower_sentences = [s.lower() for s in sentences]
     transition_count = 0
-    for s in lower_sentences:
-        for tw in TRANSITION_WORDS:
-            if tw in s:
-                transition_count += 1
-                break  # count each sentence once
+    lines = content.split('\n') if content else []
+    missing_transitions: list[dict[str, Any]] = []
+    for i, s in enumerate(lower_sentences):
+        has_tw = any(tw in s for tw in TRANSITION_WORDS)
+        if has_tw:
+            transition_count += 1
+        elif content and sentences[i]:
+            line_no = 1
+            for li, line in enumerate(lines, 1):
+                if sentences[i][:40].strip() in line:
+                    line_no = li
+                    break
+            missing_transitions.append({
+                'line': line_no,
+                'text': sentences[i][:120] + ('...' if len(sentences[i]) > 120 else ''),
+            })
 
     return {
         'transition_count': transition_count,
         'total_sentences': len(sentences),
         'transition_pct': round(transition_count / len(sentences) * 100, 1),
+        'missing_transitions': missing_transitions,
     }
 
 
@@ -1041,8 +1111,15 @@ def analyze_structured_data(content: str) -> dict[str, Any]:
     table_rows = len(re.findall(r'^\|.+\|$', content, re.MULTILINE))
     tables = 0
     if table_rows > 0:
-        # Estimate number of tables (each table has at least a header separator row)
         tables = len(re.findall(r'^\|[-:| ]+\|$', content, re.MULTILINE))
+
+    # HTML tables (WordPress wp-block-table, etc.)
+    html_tables = len(re.findall(r'<table[^>]*>', content, re.IGNORECASE))
+    if html_tables > tables:
+        tables = html_tables
+        html_rows = len(re.findall(r'<tr[^>]*>', content, re.IGNORECASE))
+        if html_rows > table_rows:
+            table_rows = html_rows
 
     unordered_items = len(re.findall(r'^[\s]*[-*+]\s', content, re.MULTILINE))
     ordered_items = len(re.findall(r'^[\s]*\d+\.\s', content, re.MULTILINE))
@@ -1678,7 +1755,7 @@ def analyze_file(file_path: str) -> dict[str, Any]:
     plain_text = re.sub(r'\n{3,}', '\n\n', plain_text).strip()
 
     headings_info = analyze_headings(body)
-    sentences_info = analyze_sentences(plain_text)
+    sentences_info = analyze_sentences(plain_text, content=body)
     faq_info = analyze_faq(body)
 
     analysis: dict[str, Any] = {
@@ -1697,7 +1774,7 @@ def analyze_file(file_path: str) -> dict[str, Any]:
         'sentences': sentences_info,
         'ai_signals': analyze_ai_signals(plain_text, sentences_info),
         'passive_voice': analyze_passive_voice(plain_text),
-        'transition_words': analyze_transition_words(plain_text),
+        'transition_words': analyze_transition_words(plain_text, content=body),
         'ai_trigger_words': analyze_ai_trigger_words(plain_text),
         'schema': analyze_schema(content),
         'links': analyze_links(body),
@@ -1739,27 +1816,24 @@ def _format_markdown(result: dict[str, Any]) -> str:
     lines.append(f"### Overall Score: {score['total']}/100 - {score['rating']}")
     lines.append('')
 
-    # Category table
-    lines.append('| Category | Score | Max |')
-    lines.append('|----------|------:|----:|')
+    # Category table with sub-score breakdown
     cat_names = {
-        'content_quality': 'Content Quality',
-        'seo_optimization': 'SEO Optimization',
-        'eeat_signals': 'E-E-A-T Signals',
-        'technical_elements': 'Technical Elements',
-        'ai_citation_readiness': 'AI Citation Readiness',
+        'content_quality': ('Content Quality', 30),
+        'seo_optimization': ('SEO Optimization', 25),
+        'eeat_signals': ('E-E-A-T Signals', 15),
+        'technical_elements': ('Technical Elements', 15),
+        'ai_citation_readiness': ('AI Citation Readiness', 15),
     }
-    cat_maxes = {
-        'content_quality': 30,
-        'seo_optimization': 25,
-        'eeat_signals': 15,
-        'technical_elements': 15,
-        'ai_citation_readiness': 15,
-    }
-    for key, label in cat_names.items():
+    details = score.get('category_details', {})
+    for key, (label, max_score) in cat_names.items():
         s = score['categories'].get(key, 0)
-        m = cat_maxes[key]
-        lines.append(f'| {label} | {s} | {m} |')
+        lines.append(f'**{label}:** {s}/{max_score}')
+        breakdown = details.get(key, {}).get('breakdown', {})
+        if breakdown:
+            for sub_key, sub_val in breakdown.items():
+                sub_label = sub_key.replace('_', ' ').title()
+                lines.append(f'  ├─ {sub_label}: {sub_val}')
+        lines.append('')
     lines.append('')
 
     # AI content detection
@@ -1836,14 +1910,30 @@ def _format_table(result: dict[str, Any]) -> str:
     score = result['score']
     filename = Path(result['file']).name
     cats = score['categories']
+    details = score.get('category_details', {})
 
     lines: list[str] = []
     lines.append(f'{filename}  [{score["total"]}/100 {score["rating"]}]')
-    lines.append(f'  Content: {cats["content_quality"]}/30  '
-                 f'SEO: {cats["seo_optimization"]}/25  '
-                 f'E-E-A-T: {cats["eeat_signals"]}/15  '
-                 f'Tech: {cats["technical_elements"]}/15  '
-                 f'AI-Cite: {cats["ai_citation_readiness"]}/15')
+
+    cat_info = [
+        ('CQ', cats.get('content_quality', 0), 30, 'content_quality'),
+        ('SEO', cats.get('seo_optimization', 0), 25, 'seo_optimization'),
+        ('EEAT', cats.get('eeat_signals', 0), 15, 'eeat_signals'),
+        ('Tech', cats.get('technical_elements', 0), 15, 'technical_elements'),
+        ('Cite', cats.get('ai_citation_readiness', 0), 15, 'ai_citation_readiness'),
+    ]
+    cat_line = '  '.join(f'{abbr}: {s}/{m}' for abbr, s, m, _ in cat_info)
+    lines.append(f'  {cat_line}')
+
+    # Sub-score breakdown
+    for abbr, s, m, key in cat_info:
+        breakdown = details.get(key, {}).get('breakdown', {})
+        if breakdown:
+            sub_parts = []
+            for sub_key, sub_val in breakdown.items():
+                short_key = sub_key.replace('_', ' ').title()
+                sub_parts.append(f'{short_key} {sub_val}')
+            lines.append(f'    {abbr}: ' + ' | '.join(sub_parts))
 
     issues = score.get('issues', [])
     high_issues = [i for i in issues if i.get('severity') == 'high']
@@ -1854,27 +1944,78 @@ def _format_table(result: dict[str, Any]) -> str:
 
 
 def _format_fix(result: dict[str, Any]) -> str:
-    """Output specific, actionable fixes prioritized by impact."""
+    """Output concrete, actionable fix suggestions with line numbers."""
     if 'error' in result:
         return f"ERROR: {result['error']}"
 
     score = result['score']
     issues = score.get('issues', [])
     filename = Path(result['file']).name
-
     lines: list[str] = []
+
     lines.append(f"Fixes for {filename} (Score: {score['total']}/100)")
     lines.append('=' * 60)
+    lines.append('')
 
-    if not issues:
-        lines.append('No issues found - content meets all quality checks.')
-        return '\n'.join(lines)
+    suggestions: list[str] = []
 
-    for i, issue in enumerate(issues, 1):
+    # --- Long sentences: emit SPLIT suggestions ---
+    long_sents = result.get('sentences', {}).get('long_sentences', [])
+    for s in long_sents:
+        words = s['words']
+        if words > 40:
+            suggestions.append(
+                f"  SPLIT: line {s['line']} \"{s['text']}\" "
+                f"({words} words → split into 2-3 shorter sentences)"
+            )
+
+    # --- Missing transitions: emit ADD TRANSITION suggestions ---
+    missing_tw = result.get('transition_words', {}).get('missing_transitions', [])
+    tw_pct = result.get('transition_words', {}).get('transition_pct', 100)
+    if tw_pct < 15:
+        for s in missing_tw[:10]:
+            lang_hint = 'por ejemplo' if any(
+                tw in s['text'].lower() for tw in
+                ['por ejemplo', 'sin embargo', 'además', 'es decir']
+            ) else 'for example'
+            suggestions.append(
+                f"  ADD TRANSITION: line {s['line']} \"{s['text']}\" "
+                f"(add \"{lang_hint}\" or equivalent transition)"
+            )
+        remaining = len(missing_tw) - 10
+        if remaining > 0:
+            suggestions.append(
+                f"  ADD TRANSITION: ({remaining} more sentences without transitions)"
+            )
+
+    # --- Over-25-word sentences (milder suggestion) ---
+    over_25 = result.get('sentences', {}).get('over_25_count', 0)
+    sents_count = result.get('sentences', {}).get('count', 0)
+    if over_25 > 0 and sents_count > 0:
+        pct = over_25 / sents_count * 100
+        if pct > 25:
+            suggestions.append(
+                f"  VARY SENTENCE LENGTH: {over_25}/{sents_count} sentences "
+                f"exceed 25 words ({pct:.0f}%) — intersperse short sentences"
+            )
+
+    # --- General issues (non-line-specific) ---
+    for issue in issues:
         sev = issue.get('severity', 'low').upper()
         cat = issue.get('category', '').replace('_', ' ').title()
-        lines.append(f'{i}. [{sev}] ({cat}) {issue["issue"]}')
+        suggestions.append(f"  [{sev}] ({cat}) {issue['issue']}")
 
+    if not suggestions:
+        lines.append('No issues found — content meets all quality checks.')
+    else:
+        for s in suggestions:
+            lines.append(s)
+
+    lines.append('')
+    lines.append('How to read:')
+    lines.append('  SPLIT N          → break long sentence at line N into 2-3 shorter ones')
+    lines.append('  ADD TRANSITION N → prepend/insert a transition word at line N')
+    lines.append('  [HIGH/MED/LOW]   → severity of the issue')
     return '\n'.join(lines)
 
 

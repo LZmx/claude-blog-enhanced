@@ -459,9 +459,19 @@ For MDX with FAQSchema component:
 ]} />
 ```
 
-For standard markdown:
+For standard markdown — use the Article.language field (default "en") to pick the correct FAQ heading:
 ```markdown
 ## Frequently Asked Questions
+<!--
+Language lookup:
+  en → "Frequently Asked Questions"
+  es → "Preguntas Frecuentes"
+  fr → "Foire Aux Questions"
+  de → "Häufig Gestellte Fragen"
+  pt → "Perguntas Frequentes"
+  it → "Domande Frequenti"
+  nl → "Veelgestelde Vragen"
+-->
 
 ### Question text here?
 
